@@ -2,6 +2,7 @@
 import streamlit as st
 import requests
 from bs4 import BeautifulSoup
+import re
 
 def clean_font(font_family):
     return font_family.replace('"', '').replace("'", "").strip()
@@ -30,12 +31,10 @@ def get_font_families(url):
 
 def parse_font_families(style_content):
     found_fonts = []
-    lines = style_content.split(';')
-    for line in lines:
-        if 'font-family' in line:
-            line = line.strip()
-            font_family_value = line.split('font-family:')[-1].strip()
-            found_fonts.extend([clean_font(font) for font in font_family_value.split(",")])
+    # Use regex to find all instances of 'font-family' and capture the value
+    matches = re.findall(r'font-family: ([^;]*)', style_content)
+    for match in matches:
+        found_fonts.extend([clean_font(font) for font in match.split(",")])
     
     return found_fonts
 
