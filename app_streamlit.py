@@ -3,10 +3,14 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 
+def clean_font(font_family):
+    # Remove quotes and extra spaces
+    return font_family.replace('"', '').replace("'", "").strip()
+
 def get_font_families(url):
     try:
         response = requests.get(url, timeout=10)
-        response.raise_for_status()  # Raise HTTPError for bad responses
+        response.raise_for_status()
     except requests.RequestException as e:
         return {"error": f"Couldn't fetch the website: {str(e)}"}, 400
     
@@ -16,7 +20,7 @@ def get_font_families(url):
     font_families = []
     
     for style in styles:
-        style_content = style.string
+        style_content = style.get_text()
         if style_content:
             font_families += parse_font_families(style_content)
     
@@ -32,7 +36,7 @@ def parse_font_families(style_content):
         if 'font-family' in line:
             line = line.strip()
             font_family_value = line.split('font-family:')[-1].strip()
-            found_fonts.append(font_family_value)
+            found_fonts.extend([clean_font(font) for font in font_family_value.split(",")])
     
     return found_fonts
 
@@ -46,6 +50,7 @@ if st.button("Fetch"):
             st.write(result["error"])
         else:
             st.write("Font Families found:")
-            st.write(result)
+            for font in result:
+                st.write(font)
     else:
         st.write("Please enter a valid URL.")
