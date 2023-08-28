@@ -4,7 +4,6 @@ import requests
 from bs4 import BeautifulSoup
 
 def clean_font(font_family):
-    # Remove quotes and extra spaces
     return font_family.replace('"', '').replace("'", "").strip()
 
 def get_font_families(url):
@@ -20,7 +19,7 @@ def get_font_families(url):
     font_families = []
     
     for style in styles:
-        style_content = style.get_text()
+        style_content = style.string if style.string else style.get_text()
         if style_content:
             font_families += parse_font_families(style_content)
     
