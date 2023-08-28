@@ -4,9 +4,11 @@ import requests
 from bs4 import BeautifulSoup
 
 def get_font_families(url):
-    response = requests.get(url)
-    if response.status_code != 200:
-        return {"error": "Couldn't fetch the website"}, 400
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+    except requests.RequestException as e:
+        return {"error": f"Couldn't fetch the website: {str(e)}"}, 400
     
     soup = BeautifulSoup(response.text, 'html.parser')
     styles = soup.find_all('style')
@@ -17,6 +19,9 @@ def get_font_families(url):
         style_content = style.string
         if style_content:
             font_families += parse_font_families(style_content)
+    
+    if not font_families:
+        return {"error": "No font families found on the website"}, 404
     
     return list(set(font_families))
 
